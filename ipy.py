@@ -1,5 +1,12 @@
 import json
 from os import path
+import sys
+import simple_http
+
+URL = 'https://download.dnscrypt.info/dnscrypt-resolvers/json/public-resolvers.json'
+if sys.argv[1] == 'get':
+    simple_http.http_get(URL)
+
 
 with open('public-resolvers.json') as f:
     d = f.read()
