@@ -1,20 +1,18 @@
 "Simple=HTTP Methods"
 from socket import socket, getaddrinfo, AF_INET
 from ssl import create_default_context
-import os.path
+from os.path import getmtime, getatime, getctime, exists, curdir, split, join, pathsep, abspath
+import json
 
-def http_get(url, overwrite=False):
+
+def http_get(url):
     """ simple http method get request """
     _, _, host, path = url.split('/', 3)
     filename = url.split('/')[-1]
-    if os.path.exists(os.path.abspath(os.path.join(os.path.curdir, filename))):
-        if overwrite:
-            print('overwriting...\r\n')
-            print('--------------------')
-            print('\r\n')
-        else:
-            filename = filename + 'new'
-            print('writing to: %s\r\n' % filename)
+    name = abspath(join(curdir, filename))
+    if exists(name):
+        name = abspath(join(curdir, str(getmtime(name)) + '_' + filename))
+        print('Creating new at:\r\n {}\r\n'.format(name))
 
     if 'https:' in url:
         port = 443
@@ -33,16 +31,29 @@ def http_get(url, overwrite=False):
     conn.sendall(bytes('GET /%s HTTP/1.0\r\nHost: %s\r\n\r\n' % (path, host), 'utf8'))
     with open(filename, 'w') as f:
         while True:
-            data = conn.recv(100)
-            if data:
-                f.write(str(bytes(data), 'utf8'))
+            data = conn.recv(4092)
+            if data: 
+                print('recv: {} of data\r\n'.format(data.bytes))
+                with open(filename, 'w') as f:
+                    json.dumps(f.write(str(bytes(data)), 'utf8'))
+
+#                f.write(str(bytes(data), 'utf8'))
             else:
-                break
+                try:
+                    fd = open('public-resolvers.jsondammit', 'wb')
+                    d =  json.dumps(fd.write(str(bytes(data)), 'utf8'))
+                    fd.close()
+                    
+                    print('fuck, written')
+
+                except TypeError:
+                    print(type(d))
+            print('written')
+#                return(d)
+
     conn.close()
+    print(conn.status())
 
 if __name__ == '__main__':
-    try:
-        import sys.argv
-        http_get(sys.argv[1])
-    except ImportError:
-        http_get('https://www.python.org/')
+    URL = 'https://download.dnscrypt.info/dnscrypt-resolvers/json/public-resolvers.json'
+    http_get(URL)
