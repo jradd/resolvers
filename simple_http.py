@@ -1,5 +1,6 @@
 "Simple=HTTP Methods"
 from socket import socket, getaddrinfo, AF_INET
+from io import BytesIO
 from ssl import create_default_context
 from os.path import getmtime, getatime, getctime, exists, curdir, split, join, pathsep, abspath
 import json
@@ -29,30 +30,18 @@ def http_get(url):
 
     conn.connect(addr)
     conn.sendall(bytes('GET /%s HTTP/1.0\r\nHost: %s\r\n\r\n' % (path, host), 'utf8'))
-    with open(filename, 'w') as f:
-        while True:
-            data = conn.recv(4092)
-            if data: 
-                print('recv: {} of data\r\n'.format(data.bytes))
-                with open(filename, 'w') as f:
-                    json.dumps(f.write(str(bytes(data)), 'utf8'))
+    buf = BytesIO()
+    while True:
+        data = conn.recv(100)
+        if data:
+            buf.write(data.text)
 
-#                f.write(str(bytes(data), 'utf8'))
-            else:
-                try:
-                    fd = open('public-resolvers.jsondammit', 'wb')
-                    d =  json.dumps(fd.write(str(bytes(data)), 'utf8'))
-                    fd.close()
-                    
-                    print('fuck, written')
+            with open(name, 'w') as f:
+                f.write(buf)
 
-                except TypeError:
-                    print(type(d))
-            print('written')
-#                return(d)
 
     conn.close()
-    print(conn.status())
+        
 
 if __name__ == '__main__':
     URL = 'https://download.dnscrypt.info/dnscrypt-resolvers/json/public-resolvers.json'
