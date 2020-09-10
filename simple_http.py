@@ -2,7 +2,7 @@
 from socket import socket, getaddrinfo, AF_INET
 import ssl
 import os.path
-import socket 
+import socket
 
 
 def http_get(url, overwrite=False):
@@ -29,6 +29,7 @@ def http_get(url, overwrite=False):
 #    context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
     with socket.create_connection((host, 443)) as sock:
+      print(sock)
       with context.wrap_socket(sock, server_hostname=host) as ssock:
         print(ssock.version())
 #        conn = ssock.connect((host, port), 1024)
